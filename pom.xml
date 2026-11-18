@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Root aggregator for the Alert Hub monorepo.
+  It ONLY lists the services so IntelliJ loads them together and
+  `./mvnw -pl services/<name>` works from the root.
+  Services do NOT inherit from this file: each keeps spring-boot-starter-parent
+  as its own parent, so any service could be moved to its own repo unchanged.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.mst.alerthub</groupId>
+    <artifactId>alert-hub</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>alert-hub</name>
+
+    <modules>
+        <module>services/loader-service</module>
+        <!-- Uncomment each line once that service folder exists: -->
+        <!-- <module>services/security-service</module> -->
+        <!-- <module>services/user-service</module> -->
+        <!-- <module>services/metric-service</module> -->
+        <!-- <module>services/action-service</module> -->
+        <!-- <module>services/processor-service</module> -->
+        <!-- <module>services/evaluation-service</module> -->
+        <!-- <module>services/email-sender-service</module> -->
+        <!-- <module>services/sms-sender-service</module> -->
+        <!-- <module>services/logger-service</module> -->
+    </modules>
+</project>
