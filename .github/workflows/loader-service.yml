@@ -1,0 +1,54 @@
+# CI for loader-service. Copy this file for each service and replace "loader".
+# Runs only when files of this service (or this workflow) change.
+name: loader-service
+
+on:
+  pull_request:
+    paths:
+      - "services/loader-service/**"
+      - ".github/workflows/loader-service.yml"
+  push:
+    branches: [main]
+    paths:
+      - "services/loader-service/**"
+      - ".github/workflows/loader-service.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/loader-service
+
+    # A throwaway Postgres so @SpringBootTest can start the app in CI
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: loader_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/loader_db
+      SPRING_DATASOURCE_USERNAME: ci
+      SPRING_DATASOURCE_PASSWORD: ci
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+
+      - name: Build and test
+        run: ./mvnw -B verify

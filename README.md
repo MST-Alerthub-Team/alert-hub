@@ -3,7 +3,7 @@
 Alert Hub notifies project managers about changes in their task-management tools (**GitHub, Jira, ClickUp**). Managers define **metrics** (e.g. "10 `bug` tasks in the last 12 hours") and **actions** (when the metric condition is met, send an **SMS** or **Email**). A scheduler checks actions every 30 minutes and the system sends the notifications through Kafka.
 
 > Team project for the **MST × Hasoub Labs** Microservices & DevOps course.
- 
+
 ---
 
 ## Architecture
@@ -15,29 +15,29 @@ flowchart LR
         JI[Jira files]
         CU[ClickUp files]
     end
- 
+
     GH & JI & CU --> LOADER[loader-service]
     CLIENT([Client / Postman]) <--> USER[user-service]
     USER <--> SECURITY[security-service]
     USER --> EVAL[evaluation-service]
     USER --> METRIC[metric-service]
     USER --> ACTION[action-service<br/>+ job scheduler]
- 
+
     ACTION -- Kafka: jobs --> PROC[processor-service]
     PROC -. Feign .-> LOADER
     PROC -. Feign .-> METRIC
     EVAL -. Feign .-> LOADER
     ACTION -. Feign .-> METRIC
- 
+
     PROC -- Kafka: email / sms --> EMAIL[email-sender-service]
     PROC -- Kafka: email / sms --> SMS[sms-sender-service]
     EVAL -- Kafka: email --> EMAIL
- 
+
     PROC & EMAIL & SMS --> LOGGER[logger-service]
 ```
 
 Solid arrows = REST or Kafka · dotted arrows = OpenFeign calls.
- 
+
 ---
 
 ## Services
@@ -56,7 +56,7 @@ Solid arrows = REST or Kafka · dotted arrows = OpenFeign calls.
 | 10 | `logger-service` | Stores logs from processor / senders | MongoDB (`logs`) | _TBD_ |
 
 Every service (except logger) must have: **service-layer tests**, **exception handling**, and **Swagger docs**.
- 
+
 ---
 
 ## Tech stack
@@ -72,6 +72,7 @@ Every service (except logger) must have: **service-layer tests**, **exception ha
 - Base dependencies: Spring Web, Lombok, Validation, DevTools, Actuator, Spring for Apache Kafka (logs go to Kafka)
 - Plus, if needed: Spring Data JPA + PostgreSQL Driver · Spring Data MongoDB (logger) · OpenFeign
 - After generating: add `springdoc-openapi-starter-webmvc-ui` (3.x) to `pom.xml`, add the module to the root `pom.xml`, copy `.github/workflows/loader-service.yml`
+
 ---
 
 ## Repository structure
@@ -81,15 +82,17 @@ alert-hub/
 ├── services/            # one independent Spring Boot project per microservice
 ├── data/                # provider files: github/  jira/  clickup/
 ├── infra/
-│   └── k8s/                 # Minikube manifests (PostgreSQL, MongoDB, Kafka, services)
+│   └── k8s/             # Minikube manifests (PostgreSQL, MongoDB, Kafka, services)
 ├── .github/
-│   ├── workflows/           # one CI workflow per service (path-filtered)
-│   └── CODEOWNERS
+│   ├── workflows/       # one CI workflow per service (path-filtered)
+│   ├── CODEOWNERS
+│   └── pull_request_template.md
+├── pom.xml              # root aggregator: lists the services, nothing inherits from it
 └── README.md
 ```
 
 **Rule:** services never import each other's code. They talk only over REST (Feign) or Kafka. Each service has its own `pom.xml`, `Dockerfile` and database.
- 
+
 ---
 
 ## Getting started
@@ -97,7 +100,7 @@ alert-hub/
 **Prerequisites:** JDK 25 (Eclipse Temurin), Docker Desktop, Minikube, kubectl, Git, IntelliJ IDEA. Maven is not needed: each service ships the Maven wrapper (`./mvnw`).
 
 ```bash
-git clone https://github.com/<org>/alert-hub.git
+git clone https://github.com/MST-Alerthub-Team/alert-hub.git
 cd alert-hub
 ```
 
@@ -148,35 +151,36 @@ Passwords come from environment variables (e.g. `DB_PASSWORD`), never from commi
 - Every service logs with **SLF4J** (`@Slf4j` from Lombok).
 - Profiles control the level: `dev` → `DEBUG` for `com.mst.alerthub`, `prod` → `INFO`.
 - Events are also published to the `logs` topic and stored by logger-service in MongoDB (`INFO` and above by default).
+
 ---
 
 ## Provider data files
 
 Files live in `data/<provider>/` and follow `{provider}_yyyy_MM_ddTHH_mm_ss`, e.g. `jira_2024_08_22T13_30_00`. The loader always reads the latest file it hasn't scanned yet. Empty numeric values are treated as `0`.
- 
+
 ---
 
 ## How we work
 
-- **Branches:** `feature/<service>-<short-name>`, `fix/<service>-<short-name>` (e.g. `feature/loader-hourly-scan`)
+- **Branches:** `feature/<service>-<short-name>`, `fix/<service>-<short-name>`, `chore/<short-name>` (e.g. `feature/loader-hourly-scan`)
 - **Commits:** `<type>(<service>): <message>`, e.g. `feat(loader): map jira fields to schema`
-- **Pull requests:** no direct pushes to `main`; 1 approval + green CI required
+- **Pull requests:** no direct pushes to `main`; 1 approval + green CI required; squash merge only
 - **Tasks:** tracked on the GitHub Project board, one issue per feature
-- **Secrets:** never commit passwords or real personal data; use `.env` files (in `.gitignore`) and fake seed data
+- **Secrets:** never commit passwords or real personal data; use environment variables and fake seed data
+
 ---
 
 ## Deployment (Part Two)
 
 Each service gets a `Dockerfile` → image pushed to Docker Hub → deployed to **Minikube** with manifests in `infra/k8s/` (`Deployment` + `Service`, `Ingress` if needed).
- 
+
 ---
 
 ## Team
 
 | Name | GitHub | Services |
 |---|---|---|
-| Abdalla Mahamid | @abedkhma | … |
-| Mohammed Ibrahim | @… | … |
-| Hilal Sharkawi | @… | … |
-| Tasneem | @… | … |
- 
+| Abdalla Mahamid | [@abedkhma](https://github.com/abedkhma) | _TBD_ |
+| Mohammed Ibrahim | [@Mohammedib24](https://github.com/Mohammedib24) | _TBD_ |
+| Hilal Sharkawi | _TBD_ | _TBD_ |
+| Tasneem Mhameed | [@Tasneem-Mhameed](https://github.com/Tasneem-Mhameed) | _TBD_ |
