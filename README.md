@@ -162,8 +162,7 @@ Files live in `data/<provider>/` and follow `{provider}_yyyy_MM_ddTHH_mm_ss`, e.
 
 ## How we work
 
-- **Branches:** `feature/<service>-<short-name>`, `fix/<service>-<short-name>`, `chore/<short-name>` (e.g. `feature/loader-hourly-scan`)
-- **Commits:** `<type>(<service>): <message>`, e.g. `feat(loader): map jira fields to schema`
+- **Branches:** `<type>/AH-<id>-<short-description>` (e.g. `feature/AH-12-loader-hourly-scan`), where AH-id is the task in Notion- **Commits:** `<type>(<service>): <message>`, e.g. `feat(loader): map jira fields to schema`
 - **Pull requests:** no direct pushes to `main`; 1 approval + green CI required; squash merge only
 - **Tasks:** tracked on the GitHub Project board, one issue per feature
 - **Secrets:** never commit passwords or real personal data; use environment variables and fake seed data
