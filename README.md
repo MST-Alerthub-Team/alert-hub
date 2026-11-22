@@ -65,13 +65,7 @@ Every service (except logger) must have: **service-layer tests**, **exception ha
 
 > All services use **the same Java and Spring Boot versions**. Upgrade them together in one PR.
 
-### Creating a new service (start.spring.io / IntelliJ)
-
-- Maven · Java · Jar · Properties · **Java 25** · **Spring Boot 4.1.2**
-- Group `com.mst.alerthub` · Artifact `<name>-service` · Package `com.mst.alerthub.<name>` (no dashes)
-- Base dependencies: Spring Web, Lombok, Validation, DevTools, Actuator, Spring for Apache Kafka (logs go to Kafka)
-- Plus, if needed: Spring Data JPA + PostgreSQL Driver · Spring Data MongoDB (logger) · OpenFeign
-- After generating: add `springdoc-openapi-starter-webmvc-ui` (3.x) to `pom.xml`, add the module to the root `pom.xml`, copy `.github/workflows/loader-service.yml`
+To add a new microservice, follow [docs/new-service.md](docs/new-service.md).
 
 ---
 
@@ -83,11 +77,14 @@ alert-hub/
 ├── data/                # provider files: github/  jira/  clickup/
 ├── infra/
 │   └── k8s/             # Minikube manifests (PostgreSQL, MongoDB, Kafka, services)
+├── docs/
+│   └── new-service.md   # step-by-step guide for adding a microservice
 ├── .github/
 │   ├── workflows/       # one CI workflow per service (path-filtered)
 │   ├── CODEOWNERS
 │   └── pull_request_template.md
 ├── pom.xml              # root aggregator: lists the services, nothing inherits from it
+├── CONTRIBUTING.md      # how we work: branches, commits, pull requests, tasks
 └── README.md
 ```
 
@@ -160,53 +157,17 @@ Files live in `data/<provider>/` and follow `{provider}_yyyy_MM_ddTHH_mm_ss`, e.
 
 ---
 
-## How we work
-
-### Branches
-
-`<type>/AH-<id>-<short-description>`, e.g. `feat/AH-12-loader-hourly-scan`. AH-id is the task in Notion.
-
-- Always branch from the latest `main` (`git checkout main && git pull` first)
-- One task = one branch = one pull request
-
-### Commits
-
-`<type>(<service>): <message>`, e.g. `feat(loader): map jira fields to schema`.
-The `(service)` part is optional for repo-wide changes, e.g. `docs: update README`.
-
-| Type | Use it for | Example commit |
-|---|---|---|
-| `feat` | New functionality | `feat(loader): read latest jira file` |
-| `fix` | A bug fix | `fix(processor): treat null threshold as 0` |
-| `docs` | Documentation only (README, comments) | `docs: add branch naming rules` |
-| `test` | Adding or fixing tests | `test(metric): service layer tests` |
-| `refactor` | Restructuring code without changing behaviour | `refactor(action): extract condition parser` |
-| `style` | Formatting only (spaces, imports), no logic change | `style(user): reformat code` |
-| `perf` | Faster or lighter code | `perf(evaluation): index developer_id` |
-| `build` | Dependencies, `pom.xml`, Dockerfile | `build(loader): add springdoc 3.2.0` |
-| `ci` | GitHub Actions workflows | `ci(security): add build workflow` |
-| `chore` | Maintenance that fits nowhere else (scaffolding, configs) | `chore(sms-sender): scaffold service` |
-| `revert` | Undoing an earlier commit | `revert: feat(loader): hourly scan` |
-
-### Pull requests
-
-- No direct pushes to `main`; every change goes through a pull request
-- 1 approval required; only maintainers merge; **squash merge only**
-- PR title = final commit message on `main`, e.g. `feat(loader): hourly scan (AH-12)`
-- If `main` changed meanwhile: click **Update branch** on the PR, or run `git pull origin main`
-
-### Tasks
-
-Tracked in Notion (**Alert Hub — Team Workspace → Tasks**). Move your task to *In Progress* when you start, *In Review* when the PR is open, *Done* when it's merged, and paste the PR link into the task.
-
-### Secrets
-
-Never commit passwords or real personal data; use environment variables and fake seed data.
----
-
 ## Deployment (Part Two)
 
 Each service gets a `Dockerfile` → image pushed to Docker Hub → deployed to **Minikube** with manifests in `infra/k8s/` (`Deployment` + `Service`, `Ingress` if needed).
+
+---
+
+## Contributing
+
+- **How we work** (branches, commit types, pull requests, tasks): see [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Adding a new microservice:** see [docs/new-service.md](docs/new-service.md)
+- **Tasks and meetings:** Notion, Alert Hub — Team Workspace
 
 ---
 
