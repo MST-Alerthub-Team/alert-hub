@@ -23,4 +23,32 @@
 hs_err_pid*
 replay_pid*
 
+# Maven build output (root and every service)
+target/
 
+# Keep the Maven wrapper jar even though *.jar is ignored above
+!.mvn/wrapper/maven-wrapper.jar
+!**/.mvn/wrapper/maven-wrapper.jar
+
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# VS Code / Eclipse
+.vscode/
+.classpath
+.project
+.settings/
+
+# Spring Initializr leftovers
+HELP.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local secrets
+.env
