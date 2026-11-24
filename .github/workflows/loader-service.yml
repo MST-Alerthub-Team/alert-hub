@@ -1,54 +1,79 @@
 # CI for loader-service. Copy this file for each service and replace "loader".
-# Runs only when files of this service (or this workflow) change.
+# Runs only when files of this service, the shared root build files (pom.xml, Maven wrapper) or this workflow change.
+
+# Name shown in the GitHub "Actions" tab and on the PR checks
 name: loader-service
 
+# WHEN does this workflow run?
 on:
+  # On every pull request ...
   pull_request:
+    # ... but only if one of these files changed (otherwise it is skipped)
     paths:
-      - "services/loader-service/**"
-      - ".github/workflows/loader-service.yml"
+      - "services/loader-service/**"            # any file of this service
+      - "pom.xml"                               # the shared root POM (parent)
+      - ".github/workflows/loader-service.yml"  # this workflow itself
+      - "mvnw"                                  # the shared Maven wrapper script
+      - ".mvn/**"                               # the wrapper's settings (Maven version)
+  # On every push to main (= after a PR is merged), with the same file filter
   push:
     branches: [main]
     paths:
       - "services/loader-service/**"
+      - "pom.xml"
       - ".github/workflows/loader-service.yml"
+      - "mvnw"
+      - ".mvn/**"
 
+# WHAT does it do? One job called "build"
 jobs:
   build:
+    # A fresh Linux machine from GitHub, deleted after the run
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: services/loader-service
 
-    # A throwaway Postgres so @SpringBootTest can start the app in CI
+    # Extra containers started next to the job.
+    # A throwaway PostgreSQL, so @SpringBootTest can start the app in CI.
     services:
       postgres:
         image: postgres:17
+        # Database name, user and password inside this test container (CI only, not real secrets)
         env:
           POSTGRES_USER: ci
           POSTGRES_PASSWORD: ci
           POSTGRES_DB: loader_db
+        # Makes Postgres reachable on localhost:5432 for the build
         ports:
           - 5432:5432
+        # Wait until Postgres is ready before the steps start
         options: >-
           --health-cmd "pg_isready -U ci"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
 
+    # Environment variables for all steps.
+    # Spring Boot reads SPRING_DATASOURCE_* automatically and connects to the Postgres above.
     env:
       SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/loader_db
       SPRING_DATASOURCE_USERNAME: ci
       SPRING_DATASOURCE_PASSWORD: ci
 
+    # The steps run one after another
     steps:
+      # 1. Download the repository code onto the machine
       - uses: actions/checkout@v4
 
+      # 2. Install Java 25 (Temurin) and cache Maven downloads between runs (faster builds)
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "25"
           cache: maven
 
+      # 3. Build and test from the repo root with the root Maven wrapper:
+      #    -B  batch mode (clean log output, no colors or progress bars)
+      #    -pl only build loader-service
+      #    -am also build what it needs (the alert-hub parent)
+      #    verify = compile + run tests + package
       - name: Build and test
-        run: ./mvnw -B verify
+        run: ./mvnw -B -pl services/loader-service -am verify
