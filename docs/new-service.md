@@ -64,6 +64,20 @@ Click **Next**, choose **Spring Boot 4.1.2**, and pick **only the dependencies f
 
 Click **Create**. If IntelliJ asks how to open it, choose **This Window**.
 
+### Delete the generated duplicates
+
+IntelliJ creates the service as a standalone project. These files already exist once at the root,
+so delete them from `services/<name>-service/`:
+
+| Delete | Why |
+|---|---|
+| `mvnw`, `mvnw.cmd`, `.mvn/` | We use the Maven wrapper at the root |
+| `.gitignore` | The root `.gitignore` covers all services |
+| `.gitattributes` | The root `.gitattributes` handles line endings for `mvnw` |
+| `HELP.md` | Generated help links, not our documentation |
+
+Keep only `pom.xml` and `src/`.
+
 ---
 
 ## 3. Switch the service to the Alert Hub parent
@@ -98,10 +112,14 @@ With the wrong path, Maven looks for `alert-hub` in the remote repository and th
 Then clean up the rest of the generated `pom.xml`:
 
 - **Keep** `<artifactId><name>-service</artifactId>`. Do not rename it.
+- **Delete** `<groupId>` and `<version>` under `</parent>`: both are inherited, so every service has the same version.
+- **Delete** the empty `<url/>`, `<licenses>`, `<developers>` and `<scm>` blocks that IntelliJ generates.
 - **Delete** `<java.version>25</java.version>` from `<properties>` (and the whole `<properties>` block if it's then empty). The root sets Java 25 for everyone.
 - **Delete** any dependency that the root already provides (list below). Declaring it again creates duplicates.
 - **Delete** generated Lombok build configuration (the Lombok `annotationProcessorPaths` in `maven-compiler-plugin`, and the Lombok `<exclude>` in `spring-boot-maven-plugin`) if the root `pom.xml` already has it.
 - **Keep** the `spring-boot-maven-plugin` in `<build>`, without a `<version>`: the root manages plugin versions.
+
+After the cleanup, the top of the service `pom.xml` is only the `<parent>` block plus `<artifactId>`, `<name>` and `<description>`.
 
 ### Inherited automatically (do NOT add these to the service)
 
@@ -115,6 +133,7 @@ Every service gets these from the root `pom.xml`:
 | Spring Boot DevTools | `optional`: for local development only, not packaged in the jar |
 | Spring Boot Actuator | |
 | Spring for Apache Kafka | |
+| Test starters for Web and Kafka (`*-webmvc-test`, `*-kafka-test`) | Delete them too; also delete `*-actuator-test` / `*-validation-test` unless your tests need them |
 
 If you're unsure, open the root `pom.xml`: anything in its top-level `<dependencies>` section is inherited, so delete it from your service.
 
@@ -161,9 +180,10 @@ Only do this in the same PR that creates the folder: Maven fails if a listed fol
 
 ## 6. Add the CI workflow
 
-1. Copy `.github/workflows/loader-service.yml` to `.github/workflows/<name>-service.yml`
-2. Replace **every** `loader` with your service name (name, `paths`, `working-directory`, `loader_db`)
-3. If your service has **no database** (processor, evaluation, email-sender, sms-sender): delete the `services: postgres` block and the three `SPRING_DATASOURCE_…` lines
+1. Copy `.github/workflows/loader-service.yml` to `.github/workflows/<name>-service.yml`. The comments in the file explain each part.
+2. Replace **every** `loader` with your service name (`name`, `paths`, `-pl services/…`, `loader_db`)
+3. The build runs from the **root** wrapper: `./mvnw -B -pl services/<name>-service -am verify`. Don't add a `working-directory`
+4. If your service has **no database** (processor, evaluation, email-sender, sms-sender): delete the `services: postgres` block and the three `SPRING_DATASOURCE_…` lines, and add a comment saying why (see `processor-service.yml`)
 
 ---
 
@@ -189,7 +209,6 @@ spring.jpa.hibernate.ddl-auto=update
 
 ## 8. Check, commit, open a pull request
 
-- Delete the generated `HELP.md`
 - In IntelliJ: **Maven** tool window → 🔄 **Reload All Maven Projects**; your service appears as a module **under `alert-hub`**
 - From the `alert-hub` root, check that Maven accepts the new parent:
 
@@ -198,7 +217,7 @@ spring.jpa.hibernate.ddl-auto=update
   mvnw.cmd validate        # Windows
   ```
 
-- Check that `git status` shows no `.idea/` or `target/` files
+- Check that `git status` shows no `.idea/` or `target/` files, and none of the duplicates from step 2
 
 ```bash
 git add .
@@ -210,19 +229,20 @@ On GitHub: **Compare & pull request** → title `chore(<name>): scaffold <name>-
 In Notion: set the task to *In Review* and paste the PR link.
 
 > **Note:** for services with a database, `./mvnw verify` fails locally until PostgreSQL runs in Minikube, because the generated test connects to the database. The CI on GitHub provides its own temporary database, so the PR check still passes.
+> To check that the build itself works without a database, run `./mvnw -pl services/<name>-service package -DskipTests`.
 
 ---
 
 ## Reviewer checklist
 
 - [ ] `<parent>` is `com.mst.alerthub:alert-hub:1.0.0-SNAPSHOT` with `<relativePath>../../pom.xml</relativePath>`
-- [ ] No `spring-boot-starter-parent` and no `<java.version>` in the service `pom.xml`
+- [ ] No `spring-boot-starter-parent`, no `<groupId>`/`<version>` under the parent, no `<java.version>` in the service `pom.xml`
 - [ ] `artifactId` is `<name>-service`
 - [ ] Package is `com.mst.alerthub.<name>`
-- [ ] No inherited dependencies repeated (Web, Lombok, Validation, DevTools, Actuator, Kafka)
+- [ ] No inherited dependencies repeated (Web, Lombok, Validation, DevTools, Actuator, Kafka, their test starters)
 - [ ] Only the service's own extra dependencies are declared (JPA + PostgreSQL / MongoDB / OpenFeign as the table says)
 - [ ] springdoc dependency present **without a `<version>`** (except logger)
 - [ ] Module line uncommented in the root `pom.xml`
 - [ ] `./mvnw validate` passes from the root
-- [ ] Workflow file added and all `loader` references replaced
-- [ ] No `HELP.md`, `.idea/`, `target/` or passwords committed
+- [ ] Workflow file added, all `loader` references replaced, builds from the root (no `working-directory`)
+- [ ] No `mvnw`, `.mvn/`, `.gitignore`, `.gitattributes`, `HELP.md`, `.idea/`, `target/` or passwords in the service folder

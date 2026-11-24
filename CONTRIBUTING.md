@@ -8,6 +8,7 @@ How we work together: branches, commits, pull requests and tasks.
 
 - Always branch from the latest `main` (`git checkout main && git pull` first)
 - One task = one branch = one pull request
+- Describe the change in the name, not the person (e.g. `docs/AH-26-update-codeowners`)
 
 ## Daily workflow
 
@@ -32,8 +33,15 @@ git pull origin main
 1. Commit your work
 2. `git pull origin main` to bring in the latest `main`
 3. Fix conflicts if any: IntelliJ → **Git → Resolve Conflicts…**, then `git add .` and `git commit`
-4. Check it still works: `./mvnw verify` in your service, and start it once
+4. Check it still works, from the `alert-hub` root: `./mvnw -pl services/<name>-service verify`, and start the service once
 5. `git push`
+
+**After your PR is merged**
+
+1. The branch is deleted on GitHub automatically
+2. Switch to `main` and pull (IntelliJ: **⌘T** / Update Project)
+3. Delete your local branch: IntelliJ branch button → **Local** → your branch → **Delete**.
+   If IntelliJ says the branch is *not fully merged*, that is expected with squash merge — delete it anyway
 
 **Keep tasks small**: a task should be done in 1–3 days. If it takes longer, split it into smaller tasks in Notion.
 
@@ -59,8 +67,9 @@ The `(service)` part is optional for repo-wide changes, e.g. `docs: update READM
 ## Pull requests
 
 - No direct pushes to `main`; every change goes through a pull request
-- 1 approval required; only maintainers merge; **squash merge only**
-- PR title = final commit message on `main`, e.g. `feat(loader): hourly scan (AH-12)`
+- **One task = one PR = one logical change.** The PR includes everything that belongs to that change: code, tests, Swagger and docs. Unrelated or repo-wide changes (e.g. build structure, CI for all services) get their own task and PR
+- Every PR needs **1 approval from a maintainer** (Abdalla or Mohammed, see `.github/CODEOWNERS`); only maintainers merge; **squash merge only**
+- PR title = final commit message on `main`, e.g. `feat(loader): hourly scan (AH-12)`. Check the title before merging — GitHub fills it in from the branch name
 - If `main` changed meanwhile: click **Update branch** on the PR, or run `git pull origin main`
 
 ## Tasks

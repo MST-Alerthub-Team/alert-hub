@@ -33,7 +33,7 @@
         <!-- <module>services/user-service</module> -->
         <!-- <module>services/metric-service</module> -->
         <!-- <module>services/action-service</module> -->
-         <module>services/processor-service</module>
+        <module>services/processor-service</module>
         <!-- <module>services/evaluation-service</module> -->
         <!-- <module>services/email-sender-service</module> -->
         <!-- <module>services/sms-sender-service</module> -->
