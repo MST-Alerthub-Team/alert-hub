@@ -1,5 +1,4 @@
-# Every PR needs a review from one of the team members below.
-# Service owners will be added once the team agrees on the split.
-# TODO: add Hilal's GitHub username.
+# Code owners = required reviewers. Every PR needs approval from one of the maintainers below.
+# Service ownership (who builds which service) is tracked in the README, not here.
 
-*       @abedkhma @Mohammedib24 @Tasneem-Mhameed
+*       @abedkhma @Mohammedib24
