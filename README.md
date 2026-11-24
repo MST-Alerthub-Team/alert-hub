@@ -177,5 +177,5 @@ Each service gets a `Dockerfile` → image pushed to Docker Hub → deployed to 
 |---|---|---|
 | Abdalla Mahamid | [@abedkhma](https://github.com/abedkhma) | _TBD_ |
 | Mohammed Ibrahim | [@Mohammedib24](https://github.com/Mohammedib24) | _TBD_ |
-| Hilal Sharkawi | _TBD_ | _TBD_ |
+| Hilal Sharkawi | @HilalSharkawi | _TBD_ |
 | Tasneem Mhameed | [@Tasneem-Mhameed](https://github.com/Tasneem-Mhameed) | _TBD_ |
