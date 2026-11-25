@@ -37,7 +37,7 @@
         <!-- <module>services/evaluation-service</module> -->
         <!-- <module>services/email-sender-service</module> -->
         <!-- <module>services/sms-sender-service</module> -->
-        <!-- <module>services/logger-service</module> -->
+        <module>services/logger-service</module>
     </modules>
 
     <properties>
